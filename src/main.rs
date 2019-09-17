@@ -18,7 +18,7 @@ use slack::{
     Event, Message, RtmClient,
 };
 
-use std::thread;
+use std::{thread, time};
 
 struct MyHandler {
     oauth: String,
@@ -175,12 +175,13 @@ fn main() {
     let mut handler = MyHandler::new(bridge_info.slack.oauth_access_token.clone());
     let slack_stream = handler.slack_msg_stream();
     let api_key: String = bridge_info.slackbot.oauth_access_token.clone();
-    let join_handle = thread::spawn(move || {
+    let join_handle = thread::spawn(move || loop {
         let r = RtmClient::login_and_run(&api_key, &mut handler);
         match r {
             Ok(_) => {}
             Err(err) => panic!("Error: {}", err),
         }
+        thread::sleep(time::Duration::from_millis(100));
     });
 
     // Keybase setup

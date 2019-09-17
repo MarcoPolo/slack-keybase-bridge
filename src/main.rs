@@ -3,6 +3,7 @@ mod keybase_profile;
 use bridge_info::get_bridge_info;
 use futures::channel::mpsc;
 use futures::{executor::block_on, prelude::*};
+use htmlescape::decode_html;
 use keybase_bot_api::{
     chat::{ChannelParams, Notification},
     Bot as KBBot, Chat,
@@ -86,7 +87,7 @@ impl slack::EventHandler for MyHandler {
         match event {
             Event::Message(msg) => match *msg {
                 Message::Standard(msg) => {
-                    println!("Msg is {:?}", msg);
+                    // println!("Msg is {:?}", msg);
                     let channel_name = msg.channel.as_ref().and_then(|c| self.get_channel_name(c));
                     if let (Some(user), Some(text)) = (msg.user, msg.text) {
                         match users_profile::get(
@@ -111,7 +112,7 @@ impl slack::EventHandler for MyHandler {
                                     username,
                                     channel_name: channel_name
                                         .unwrap_or_else(|| String::from("unkown channel")),
-                                    msg_text: text,
+                                    msg_text: decode_html(&text).unwrap_or(text),
                                 };
 
                                 if let Some(sender) = self.slack_msg_channel.as_mut() {
@@ -195,7 +196,7 @@ fn main() {
 
     // Bridge msgs from Slack -> Keybase
     let slack_bridge_future = slack_stream.for_each(|msg| {
-        println!("Got msg: {:?}", msg);
+        // println!("Got msg: {:?}", msg);
         let channel = ChannelParams {
             name: kb_team.clone(),
             members_type: Some(String::from("team")),
@@ -216,7 +217,7 @@ fn main() {
     // Bridge msgs from Keybase -> Slack
     let slack_msg_sender = requests::default_client().unwrap();
     let kb_bridge_future = kb_msgs.for_each(|notif| {
-            println!("notif is {:?}", notif);
+        // println!("notif is {:?}", notif);
         match notif {
             Notification::Chat(api::MsgNotification {
                 msg:
@@ -247,8 +248,8 @@ fn main() {
                     }),
                 ..
             }) => {
-                println!("Got KB Msg: {} in {}#{}: {}", username, team_name, channel_name, msg_text);
-                if team_name == kb_team && &username != &bridge_info.keybase.bot_name {
+                // println!("Got KB Msg: {} in {}#{}: {}", username, team_name, channel_name, msg_text);
+                if team_name == kb_team && username != bridge_info.keybase.bot_name {
                     let profile_pic: Option<&str> = keybase_profile_pics.get_keybase_profile_picture(&username).ok().map(|s| s.as_str());
                     if let Err(e) = post_slack_message(&slack_msg_sender, &bridge_info.slackbot.oauth_access_token, &PostMessageRequest {
                         channel: &channel_name,

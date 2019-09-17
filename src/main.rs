@@ -260,6 +260,7 @@ fn main() {
                     }) {
                         println!("Error in posting msg to slack {:?}", e);
                     }
+                } else if username == bridge_info.keybase.bot_name {
                 } else {
                     println!("Got a msg from a team name that I haven't been configured for: {}", team_name);
                 }

@@ -573,6 +573,7 @@ dependencies = [
 [[package]]
 name = "keybase-bot-api"
 version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "futures-preview 0.3.0-alpha.18 (registry+https://github.com/rust-lang/crates.io-index)",
  "hex 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1282,7 +1283,7 @@ name = "slack-keybase-bridge"
 version = "0.1.0"
 dependencies = [
  "futures-preview 0.3.0-alpha.18 (registry+https://github.com/rust-lang/crates.io-index)",
- "keybase-bot-api 0.3.0",
+ "keybase-bot-api 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "keybase-protocol 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "reqwest 0.9.20 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.101 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1767,6 +1768,7 @@ dependencies = [
 "checksum iovec 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)" = "dbe6e417e7d0975db6512b90796e8ce223145ac4e33c377e4a42882a0e88bb08"
 "checksum itoa 0.4.4 (registry+https://github.com/rust-lang/crates.io-index)" = "501266b7edd0174f8530248f87f99c88fbe60ca4ef3dd486835b8d8d53136f7f"
 "checksum kernel32-sys 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)" = "7507624b29483431c0ba2d82aece8ca6cdba9382bff4ddd0f7490560c056098d"
+"checksum keybase-bot-api 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)" = "0a800b9dffbd3ec12eeaba871f045ab70d84a4d7870179589904c942bc172f75"
 "checksum keybase-protocol 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "80b9768780abc8add95896e410d69dc123babcb22edfd545c51c45506b01bc9b"
 "checksum lazy_static 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)" = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 "checksum libc 0.2.62 (registry+https://github.com/rust-lang/crates.io-index)" = "34fcd2c08d2f832f376f4173a231990fa5aef4e99fb569867318a227ef4c06ba"

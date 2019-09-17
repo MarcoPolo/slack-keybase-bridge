@@ -1,3 +1,9 @@
+# Keybase <-> Slack Bridge
+
+Connect Slack Messages to Keybase and vice-versa.
+
+Chat with me at `marcopolo` on keybase, if you're setting this up!
+
 ## Setup
 
 Create a Bot on Slack, fill the api keys in bridge_config.toml.

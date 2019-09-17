@@ -1,0 +1,10 @@
+[slack]
+oauth_access_token = ""
+
+[slackbot]
+oauth_access_token = ""
+
+[keybase]
+paper_key = "" # A paper key for the bot to login with
+team = "yourKeybaseTeam"
+bot_name = "telegraph_bot3000" # The name of the bot on Keybase

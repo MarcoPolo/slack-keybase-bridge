@@ -81,7 +81,6 @@ impl KeybaseProfilePictureCache {
         username
       ))?
       .text()?;
-      println!("Body is {}", body);
       let resp: KeybaseProfileResp = serde_json::from_str(&body)?;
       match resp.them.first() {
         Some(KeybaseProfile {

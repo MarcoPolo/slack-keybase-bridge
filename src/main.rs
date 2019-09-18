@@ -148,23 +148,8 @@ impl slack::EventHandler for MyHandler {
         println!("on_close");
     }
 
-    fn on_connect(&mut self, cli: &RtmClient) {
+    fn on_connect(&mut self, _cli: &RtmClient) {
         println!("on_connect");
-        // find the general channel id from the `StartResponse`
-        let _channel_id = cli
-            .start_response()
-            .channels
-            .as_ref()
-            .and_then(|channels| {
-                channels.iter().find(|chan| match chan.name {
-                    None => false,
-                    Some(ref name) => name == "bot-test2",
-                })
-            })
-            .and_then(|chan| chan.id.as_ref())
-            .expect("bottest channel not found");
-        // let _ = cli.sender().send_message(&channel_id, "Hello world!");
-        // Send a message over the real time api websocket
     }
 }
 
@@ -218,9 +203,8 @@ fn main() {
     // Bridge msgs from Keybase -> Slack
     let slack_msg_sender = requests::default_client().unwrap();
     let kb_bridge_future = kb_msgs.for_each(|notif| {
-        // println!("notif is {:?}", notif);
         match notif {
-            Notification::Chat(api::MsgNotification {
+            Ok(Notification::Chat(api::MsgNotification {
                 msg:
                     Some(api::MsgSummary {
                         content:
@@ -248,8 +232,13 @@ fn main() {
                         ..
                     }),
                 ..
-            }) => {
+            })) => {
                 // println!("Got KB Msg: {} in {}#{}: {}", username, team_name, channel_name, msg_text);
+                let msg_text = if msg_text.contains(":secret:") || msg_text.starts_with('!') {
+                    String::from("_encrypted message - see keybase_")
+                } else {
+                    msg_text
+                };
                 if team_name == kb_team && username != bridge_info.keybase.bot_name {
                     let profile_pic: Option<&str> = keybase_profile_pics.get_keybase_profile_picture(&username).ok().map(|s| s.as_str());
                     if let Err(e) = post_slack_message(&slack_msg_sender, &bridge_info.slackbot.oauth_access_token, &PostMessageRequest {
@@ -272,5 +261,6 @@ fn main() {
     });
 
     block_on(future::join(slack_bridge_future, kb_bridge_future));
+    // block_on(kb_bridge_future);
     join_handle.join().unwrap();
 }

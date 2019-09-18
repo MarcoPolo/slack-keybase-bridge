@@ -164,7 +164,7 @@ fn main() {
         let r = RtmClient::login_and_run(&api_key, &mut handler);
         match r {
             Ok(_) => {}
-            Err(err) => panic!("Error: {}", err),
+            Err(err) => println!("Error: {}", err),
         }
         thread::sleep(time::Duration::from_millis(100));
     });

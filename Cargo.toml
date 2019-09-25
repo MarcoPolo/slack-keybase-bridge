@@ -13,7 +13,7 @@ toml = "0.5.3"
 serde = "1.0.101"
 serde_derive = "1.0.101"
 futures-preview = "0.3.0-alpha.18"
-keybase-bot-api = "0.4.0"
+keybase-bot-api = "0.4.1"
 # keybase-bot-api = {path = "../rusty-keybase-bot"}
 keybase-protocol = "0.1.0"
 transient-hashmap = "0.4.1"

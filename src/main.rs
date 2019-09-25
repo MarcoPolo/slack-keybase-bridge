@@ -22,6 +22,8 @@ use std::{thread, time};
 
 struct MyHandler {
     oauth: String,
+    bot_oauth: String,
+    user_id: Option<String>,
     slack_client: requests::Client,
     slack_msg_channel: Option<mpsc::Sender<SlackMessage>>,
 }
@@ -44,9 +46,11 @@ impl SlackMessage {
 }
 
 impl MyHandler {
-    fn new(oauth: String) -> Self {
+    fn new(oauth: String, bot_oauth: String) -> Self {
         MyHandler {
             oauth,
+            user_id: None,
+            bot_oauth,
             slack_client: requests::default_client().unwrap(),
             slack_msg_channel: None,
         }
@@ -86,6 +90,53 @@ impl slack::EventHandler for MyHandler {
     fn on_event(&mut self, _cli: &RtmClient, event: Event) {
         match event {
             Event::Message(msg) => match *msg {
+                Message::BotMessage(slack::api::MessageBotMessage {
+                    text: Some(text),
+                    username: Some(username),
+                    channel: Some(channel),
+                    bot_id: Some(from_bot_id),
+                    ..
+                }) => {
+                    use slack::api::bots;
+                    let bot_info = bots::info(
+                        &self.slack_client,
+                        &self.bot_oauth,
+                        &bots::InfoRequest {
+                            bot: Some(from_bot_id.as_str()),
+                        },
+                    );
+
+                    if let Ok(bots::InfoResponse {
+                        bot:
+                            Some(bots::InfoResponseBot {
+                                name: Some(bot_name),
+                                ..
+                            }),
+                        ..
+                    }) = bot_info
+                    {
+                        if bot_name == "KeybaseBridge" {
+                            println!("Ignoring bot msg from self");
+                            return;
+                        }
+                    }
+
+                    let channel_name = self.get_channel_name(&channel);
+                    let parsed_msg = SlackMessage::Simple {
+                        username,
+                        channel_name: channel_name
+                            .unwrap_or_else(|| String::from("unkown channel")),
+                        msg_text: decode_html(&text).unwrap_or(text),
+                    };
+
+                    if let Some(sender) = self.slack_msg_channel.as_mut() {
+                        if let Err(e) = sender.start_send(parsed_msg) {
+                            println!("Error sending slack msg to mpsc {:?}", e);
+                        }
+                    } else {
+                        println!("No listeners for msg: {:?}", parsed_msg)
+                    }
+                }
                 Message::Standard(msg) => {
                     // println!("Msg is {:?}", msg);
                     let channel_name = msg.channel.as_ref().and_then(|c| self.get_channel_name(c));
@@ -148,8 +199,17 @@ impl slack::EventHandler for MyHandler {
         println!("on_close");
     }
 
-    fn on_connect(&mut self, _cli: &RtmClient) {
-        println!("on_connect");
+    fn on_connect(&mut self, cli: &RtmClient) {
+        let my_user_id = cli
+            .start_response()
+            .slf
+            .as_ref()
+            .unwrap()
+            .id
+            .as_ref()
+            .unwrap()
+            .to_string();
+        self.user_id = Some(my_user_id);
     }
 }
 
@@ -157,7 +217,10 @@ fn main() {
     let mut keybase_profile_pics = keybase_profile::KeybaseProfilePictureCache::default();
     // Slack setup
     let bridge_info = get_bridge_info();
-    let mut handler = MyHandler::new(bridge_info.slack.oauth_access_token.clone());
+    let mut handler = MyHandler::new(
+        bridge_info.slack.oauth_access_token.clone(),
+        bridge_info.slackbot.oauth_access_token.clone(),
+    );
     let slack_stream = handler.slack_msg_stream();
     let api_key: String = bridge_info.slackbot.oauth_access_token.clone();
     let join_handle = thread::spawn(move || loop {
